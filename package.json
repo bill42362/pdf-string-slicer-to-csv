@@ -1,0 +1,19 @@
+{
+  "name": "pdf-string-slicer-to-csv",
+  "version": "1.0.0",
+  "description": "Slice pdf to csv by strings.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "pdf",
+    "csv"
+  ],
+  "author": "Pi-Yin Hsiao",
+  "license": "ISC",
+  "dependencies": {
+    "pdfreader": "^0.2.3"
+  }
+}

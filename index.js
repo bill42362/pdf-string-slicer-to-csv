@@ -99,4 +99,5 @@ Promise.all(filenames.map(readfilePromise))
             }
         });
     });
-});
+})
+.catch(console.error);

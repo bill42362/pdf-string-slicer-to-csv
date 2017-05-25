@@ -66,34 +66,33 @@ const readfilePromise = (filename) => {
     });
 };
 
-let columnNames = targetColumns.map(row => row.csvColumnName || row.fromString);
-let outputBuffer = '';
-outputBuffer += columnNames.join(',') + '\n';
-
-filenames.forEach(filename => {
-    readfilePromise(filename)
-    .then(itemsOfFile => {
-        const pagesOfFile = mapItemsToPages(itemsOfFile);
-        const linesOfPagesOfFile = pagesOfFile.map(mapItemsToLines);
-        const dataOfFile = linesOfPagesOfFile.reduce((currentObject, itemsOfPage, pageIndex) => {
+Promise.all(filenames.map(readfilePromise))
+.then(itemsOfFiles => {
+    const pagesOfFiles = itemsOfFiles.map(mapItemsToPages);
+    const linesOfPagesOfFiles = pagesOfFiles.map(pagesOfFile => {
+        return pagesOfFile.map(mapItemsToLines);
+    });
+    const dataOfFiles = linesOfPagesOfFiles.map(linesOfPagesOfFile => {
+        return linesOfPagesOfFile.reduce((currentObject, itemsOfPage, pageIndex) => {
             let rowsOfPage = targetColumns.filter(row => pageIndex + 1 === row.page);
             return Object.assign({}, currentObject, extractDataOfColumns(itemsOfPage, rowsOfPage));
         }, {});
-        return new Promise(resolve => { resolve(dataOfFile); });
-    })
-    .then(data => {
-        return new Promise((resolve, reject) => {
-            let columnNames = targetColumns.map(row => row.csvColumnName || row.fromString);
-            outputBuffer += columnNames.map(columnName => data[columnName]).join(',') + '\n';
-            fs.writeFile(OUTPUT_FILE, outputBuffer, error => {
-                if(error) { reject(error); }
-                else {
-                    console.log(outputBuffer);
-                    outputBuffer = '';
-                    resolve(data);
-                }
-            });
+    });
+    return new Promise(resolve => { resolve(dataOfFiles); });
+})
+.then(dataOfFiles => {
+    return new Promise((resolve, reject) => {
+        let columnNames = targetColumns.map(row => row.csvColumnName || row.fromString);
+        let outputBuffer = '';
+        outputBuffer += columnNames.join(',') + '\n';
+        dataOfFiles.forEach(dataOfFile => {
+            let rowOfFile = columnNames.map(columnName => dataOfFile[columnName]).join(',');
+            outputBuffer += rowOfFile + '\n';
+            console.log(rowOfFile);
         });
-    })
-    .catch(error => { console.error('error:', error); });
+        fs.writeFile(OUTPUT_FILE, outputBuffer, error => {
+            if(error) { reject(error); }
+            else { resolve(dataOfFiles); }
+        });
+    });
 });

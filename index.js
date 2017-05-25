@@ -85,6 +85,7 @@ Promise.all(filenames.map(readfilePromise))
         let columnNames = targetColumns.map(row => row.csvColumnName || row.fromString);
         let outputBuffer = '';
         outputBuffer += columnNames.join(',') + '\n';
+        console.log(columnNames.join(','));
         dataOfFiles.forEach(dataOfFile => {
             let rowOfFile = columnNames.map(columnName => dataOfFile[columnName]).join(',');
             outputBuffer += rowOfFile + '\n';
@@ -92,7 +93,10 @@ Promise.all(filenames.map(readfilePromise))
         });
         fs.writeFile(OUTPUT_FILE, outputBuffer, error => {
             if(error) { reject(error); }
-            else { resolve(dataOfFiles); }
+            else {
+                console.log(`\nResult in output file: ${OUTPUT_FILE}`);
+                resolve(dataOfFiles);
+            }
         });
     });
 });
